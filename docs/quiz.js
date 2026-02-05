@@ -24,7 +24,7 @@ function stopTimer() {
 }
 
 // ===== LOAD QUESTIONS =====
-fetch(`/data/${file}`)
+fetch(`data/${file}`)
   .then((r) => r.json())
   .then((data) => {
     questions = [...data];
