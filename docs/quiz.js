@@ -24,8 +24,15 @@ function stopTimer() {
 }
 
 // ===== LOAD QUESTIONS =====
-fetch(`data/${file}`)
-  .then((r) => r.json())
+// Определяем базовый путь для GitHub Pages
+const basePath = location.pathname.includes('/Exam-Platform/') ? '/Exam-Platform/' : '';
+const dataPath = `${basePath}data/${file}`;
+
+fetch(dataPath)
+  .then((r) => {
+    if (!r.ok) throw new Error(`Ошибка загрузки: ${r.status}`);
+    return r.json();
+  })
   .then((data) => {
     questions = [...data];
 
@@ -43,10 +50,25 @@ fetch(`data/${file}`)
 
     updateProgress();
     render();
+  })
+  .catch((error) => {
+    console.error('Ошибка загрузки:', error);
+    const root = document.getElementById('quiz');
+    root.innerHTML = `
+      <h2>Ошибка загрузки вопросов</h2>
+      <p>Не удалось загрузить данные: ${error.message}</p>
+      <p>Путь: ${dataPath}</p>
+      <button onclick="location.href='a9F3kQxL2mP8sT.html'">Вернуться к темам</button>
+    `;
   });
 
 // ===== RENDER =====
 function render() {
+  if (!questions.length || index >= questions.length) {
+    document.getElementById('quiz').innerHTML = '<h2>Нет вопросов для отображения</h2>';
+    return;
+  }
+
   const q = questions[index];
   const root = document.getElementById('quiz');
 
