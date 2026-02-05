@@ -23,12 +23,15 @@ body {
   align-items: center;
 }
 
+/* Input and Button Styles */
 input,
 button {
   padding: 12px;
   border-radius: 12px;
   border: 1px solid #cfd8ff;
   font-size: 16px;
+  color: #0a2540;
+  background: white;
 }
 
 button {
@@ -37,48 +40,98 @@ button {
   cursor: pointer;
   border: none;
   margin-top: 10px;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
+button:active {
+  transform: scale(0.97);
+}
+
+button:hover {
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+input {
+  color: #0a2540;
+  background: white;
+}
+
+/* Grid Layout */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
 }
 
-/* Make cards stretch to same height and align content */
+/* Card Styles */
 .card {
+  background: white;
+  color: #0a2540;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+.card h1,
+.card h2,
+.card h3,
+.card h4,
+.card h5,
+.card h6,
+.card p {
+  color: #0a2540;
+  margin: 0 0 10px 0;
 }
 
+.card h3 {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.card p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #334155;
+  margin-bottom: 16px;
+}
+
+/* Answer Button Styles */
 .answer {
   background: white;
+  color: #0a2540;
   padding: 14px;
   margin-bottom: 10px;
   border-radius: 14px;
-  border: 1px solid #e5e7eb;
+  border: 2px solid #e5e7eb;
   cursor: pointer;
-  transition: 0.25s;
+  transition: all 0.25s ease;
+  font-size: 16px;
+  text-align: left;
+}
+
+.answer:hover {
+  background: #f3f4f6;
+  border-color: #2563eb;
 }
 
 .answer.correct {
   background: #dcfce7;
   border-color: #22c55e;
+  color: #0a2540;
 }
 
 .answer.wrong {
   background: #fee2e2;
   border-color: #ef4444;
+  color: #0a2540;
 }
 
+/* Progress Bar */
 .progress {
   height: 10px;
   background: #e5e7eb;
@@ -91,25 +144,125 @@ button {
   height: 100%;
   width: 0;
   background: linear-gradient(90deg, #2563eb, #38bdf8);
-  transition: width 0.4s;
+  transition: width 0.4s ease;
 }
 
+/* Quiz Header */
+.quiz-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+#timer {
+  font-size: 18px;
+  font-weight: bold;
+  color: #2563eb;
+  background: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Quiz Content */
+#quiz {
+  color: #0a2540;
+}
+
+#quiz h2 {
+  color: #0a2540;
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+#quiz p {
+  color: #0a2540;
+}
+
+/* Mode Styles */
 .mode p {
   font-size: 14px;
   line-height: 1.5;
   color: #334155;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-button {
+/* Next Button (Mode 6) */
+.next-btn {
+  background: #10b981;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease;
+  margin-top: 20px;
 }
 
-button:active {
+.next-btn:hover {
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.next-btn:active {
   transform: scale(0.97);
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #0a2540;
+  margin: 0;
+}
+
+h1 {
+  font-size: 32px;
+  margin-bottom: 24px;
+}
+
+h2 {
+  font-size: 24px;
+}
+
+h3 {
+  font-size: 18px;
+}
+
+p,
+span {
+  color: #0a2540;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app {
+    padding: 12px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  h1 {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  #timer {
+    font-size: 16px;
+    padding: 8px 16px;
+  }
 }
