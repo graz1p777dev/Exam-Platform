@@ -6,6 +6,7 @@ const limit = Number(params.get('limit'));
 let questions = [];
 let index = 0;
 let score = 0;
+let selected = []; // Для режима 1 - выбранные ответы
 
 // ===== TIMER =====
 let seconds = 0;
@@ -71,6 +72,7 @@ function render() {
 
   const q = questions[index];
   const root = document.getElementById('quiz');
+  selected = []; // Сброс выбора при новом вопросе
 
   root.innerHTML = `
     <h2>${q.question}</h2>
@@ -87,6 +89,16 @@ function render() {
           `;
         }
 
+        // Режимы 1, 2, 5: выбор множества ответов
+        if ([1, 2, 5].includes(mode)) {
+          return `
+            <button class="answer" id="answer-${i}" onclick="toggleAnswer(${i})">
+              ${a}
+            </button>
+          `;
+        }
+
+        // Режимы 3, 4: один ответ и сразу проверка
         return `
           <button class="answer" onclick="pick(${i})">
             ${a}
@@ -95,46 +107,93 @@ function render() {
       })
       .join('')}
 
+    ${[1, 2, 5].includes(mode) ? `<button class="next-btn" onclick="submitAnswer()">Ответить</button>` : ''}
     ${mode === 6 ? `<button class="next-btn" onclick="next()">Следующий вопрос</button>` : ''}
   `;
 }
 
-// ===== ANSWER PICK =====
-function pick(i) {
-  if (mode === 6) return;
+// ===== TOGGLE ANSWER (Режим 1) =====
+function toggleAnswer(i) {
+  const btn = document.getElementById(`answer-${i}`);
+  if (selected.includes(i)) {
+    selected = selected.filter((idx) => idx !== i);
+    btn.classList.remove('selected');
+  } else {
+    selected.push(i);
+    btn.classList.add('selected');
+  }
+}
+
+// ===== SUBMIT ANSWER (Режим 1) =====
+function submitAnswer() {
+  if (selected.length === 0) {
+    alert('Выберите хотя бы один ответ');
+    return;
+  }
 
   const q = questions[index];
   const answers = document.querySelectorAll('.answer');
 
-  // Режим обучения
-  if (mode === 1) {
-    answers.forEach((el, idx) => {
-      if (q.correctIndexes.includes(idx)) {
-        el.classList.add('correct');
-      } else {
-        el.classList.add('wrong');
-      }
-      el.onclick = null;
-    });
+  // Проверяем правильность
+  const isCorrect =
+    selected.length === q.correctIndexes.length &&
+    selected.every((i) => q.correctIndexes.includes(i));
+
+  if (isCorrect) {
+    score++;
   }
+
+  // Показываем результаты
+  answers.forEach((el, idx) => {
+    if (q.correctIndexes.includes(idx)) {
+      el.classList.add('correct');
+    } else if (selected.includes(idx)) {
+      el.classList.add('wrong');
+    }
+    el.onclick = null;
+  });
+
+  // Отключаем кнопку "Ответить"
+  const submitBtn = document.querySelector('.next-btn');
+  if (submitBtn) submitBtn.style.display = 'none';
+
+  // Добавляем кнопку "Далее"
+  const root = document.getElementById('quiz');
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'next-btn';
+  nextBtn.textContent = 'Далее';
+  nextBtn.onclick = () => {
+    index++;
+    updateProgress();
+    if (index < questions.length) {
+      render();
+    } else {
+      finish();
+    }
+  };
+  root.appendChild(nextBtn);
+}
+
+// ===== ANSWER PICK (Режимы 3-4) =====
+function pick(i) {
+  if (mode === 6 || [1, 2, 5].includes(mode)) return;
+
+  const q = questions[index];
 
   if (q.correctIndexes.includes(i)) {
     score++;
   }
 
-  setTimeout(
-    () => {
-      index++;
-      updateProgress();
+  setTimeout(() => {
+    index++;
+    updateProgress();
 
-      if (index < questions.length) {
-        render();
-      } else {
-        finish();
-      }
-    },
-    mode === 1 ? 900 : 300
-  );
+    if (index < questions.length) {
+      render();
+    } else {
+      finish();
+    }
+  }, 300);
 }
 
 // ===== NEXT (MODE 6) =====
