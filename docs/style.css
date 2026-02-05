@@ -101,7 +101,7 @@ input {
 }
 
 /* Answer Button Styles */
-.answer {
+button.answer {
   background: white;
   color: #0a2540 !important;
   padding: 14px;
@@ -112,20 +112,21 @@ input {
   transition: all 0.25s ease;
   font-size: 16px;
   text-align: left;
+  margin-top: 0;
 }
 
-.answer:hover {
+button.answer:hover {
   background: #f3f4f6;
   border-color: #2563eb;
 }
 
-.answer.correct {
+button.answer.correct {
   background: #dcfce7;
   border-color: #22c55e;
   color: #0a2540 !important;
 }
 
-.answer.wrong {
+button.answer.wrong {
   background: #fee2e2;
   border-color: #ef4444;
   color: #0a2540 !important;
