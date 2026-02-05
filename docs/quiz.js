@@ -173,7 +173,7 @@ function finish() {
     quiz.innerHTML = `
       <h2>Просмотр завершён</h2>
       <p>Вы просмотрели все вопросы выбранной темы.</p>
-      <button onclick="location.href='home.html'">К темам</button>
+      <button onclick="location.href='a9F3kQxL2mP8sT.html'">К темам</button>
     `;
     return;
   }
@@ -182,6 +182,6 @@ function finish() {
     <h2>Экзамен завершён</h2>
     <p>Правильных ответов: <b>${score}</b> из <b>${questions.length}</b></p>
     ${mode !== 1 ? `<p>Время выполнения: <b>${seconds} сек</b></p>` : ''}
-    <button onclick="location.href='home.html'">К темам</button>
+    <button onclick="location.href='a9F3kQxL2mP8sT.html'">К темам</button>
   `;
 }
