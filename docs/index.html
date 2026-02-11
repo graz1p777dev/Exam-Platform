@@ -2,18 +2,36 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Вход</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход - Юридическая викторина</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="login-page">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-icon">🔐</div>
+        <h1>Добро пожаловать</h1>
+        <p>Введите код доступа для продолжения</p>
+      </div>
+      
+      <div class="login-form">
+        <div class="input-group">
+          <input 
+            type="password" 
+            id="code" 
+            placeholder="Введите код доступа"
+            autocomplete="off"
+          >
+          <button onclick="check()" class="btn-primary">
+            Войти
+          </button>
+        </div>
+        <p id="error" class="error-message"></p>
+      </div>
+    </div>
+  </div>
 
-<div class="app center">
-  <h1>🔒 Введите код</h1>
-  <input id="code" placeholder="Код доступа">
-  <button onclick="check()">Войти</button>
-  <p id="error"></p>
-</div>
-
-<script src="auth.js"></script>
+  <script src="auth.js"></script>
 </body>
 </html>

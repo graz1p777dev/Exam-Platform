@@ -12,11 +12,15 @@ function start(mode) {
   let url = `quiz.html?data=${dataFile}&mode=${mode}`;
 
   if (mode === 3) {
-    const limit = document.getElementById('limit').value;
+    const limitInput = document.getElementById('limit');
+    const limit = parseInt(limitInput.value);
+    
     if (!limit || limit <= 0) {
-      alert('Введите количество вопросов');
+      alert('⚠️ Введите корректное количество вопросов (больше 0)');
+      limitInput.focus();
       return;
     }
+    
     url += `&limit=${limit}`;
   }
 

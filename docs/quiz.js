@@ -6,7 +6,8 @@ const limit = Number(params.get('limit'));
 let questions = [];
 let index = 0;
 let score = 0;
-let selected = []; // Для режима 1 - выбранные ответы
+let selected = [];
+let pickLocked = false;
 
 // ===== TIMER =====
 let seconds = 0;
@@ -16,16 +17,18 @@ function startTimer() {
   timerId = setInterval(() => {
     seconds++;
     const timer = document.getElementById('timer');
-    if (timer) timer.textContent = `${seconds} сек`;
+    if (timer) timer.textContent = `⏱️ ${seconds} сек`;
   }, 1000);
 }
 
 function stopTimer() {
-  clearInterval(timerId);
+  if (timerId) {
+    clearInterval(timerId);
+    timerId = null;
+  }
 }
 
 // ===== LOAD QUESTIONS =====
-// Определяем базовый путь для GitHub Pages
 const basePath = location.pathname.includes('/Exam-Platform/') ? '/Exam-Platform/' : '';
 const dataPath = `${basePath}data/${file}`;
 
@@ -37,14 +40,17 @@ fetch(dataPath)
   .then((data) => {
     questions = [...data];
 
+    // Перемешиваем для режимов 2 и 3
     if (mode === 2 || mode === 3) {
       questions.sort(() => Math.random() - 0.5);
     }
 
+    // Ограничиваем для режима 3
     if (mode === 3 && limit) {
-      questions = questions.slice(0, limit);
+      questions = questions.slice(0, Math.min(limit, questions.length));
     }
 
+    // Запускаем таймер (кроме режимов 1 и 6)
     if (![1, 6].includes(mode)) {
       startTimer();
     }
@@ -56,65 +62,96 @@ fetch(dataPath)
     console.error('Ошибка загрузки:', error);
     const root = document.getElementById('quiz');
     root.innerHTML = `
-      <h2>Ошибка загрузки вопросов</h2>
-      <p>Не удалось загрузить данные: ${error.message}</p>
-      <p>Путь: ${dataPath}</p>
-      <button onclick="location.href='a9F3kQxL2mP8sT.html'">Вернуться к темам</button>
+      <div class="finish-screen">
+        <h2>❌ Ошибка загрузки вопросов</h2>
+        <p style="color: var(--text-secondary); margin: 20px 0;">
+          Не удалось загрузить данные: ${error.message}
+        </p>
+        <p style="color: var(--text-muted); font-size: 14px;">
+          Путь: ${dataPath}
+        </p>
+        <button class="btn-primary" onclick="location.href='a9F3kQxL2mP8sT.html'" style="margin-top: 24px;">
+          Вернуться к темам
+        </button>
+      </div>
     `;
   });
 
 // ===== RENDER =====
 function render() {
   if (!questions.length || index >= questions.length) {
-    document.getElementById('quiz').innerHTML = '<h2>Нет вопросов для отображения</h2>';
+    document.getElementById('quiz').innerHTML = `
+      <div class="finish-screen">
+        <h2>⚠️ Нет вопросов для отображения</h2>
+      </div>
+    `;
     return;
   }
 
   const q = questions[index];
   const root = document.getElementById('quiz');
-  selected = []; // Сброс выбора при новом вопросе
+  selected = [];
+  pickLocked = false;
 
-  root.innerHTML = `
-    <h2>${q.question}</h2>
+  // Режим 6 - показываем правильные ответы сразу
+  if (mode === 6) {
+    root.innerHTML = `
+      <h2>${q.question}</h2>
+      <div class="answers-container">
+        ${q.answers
+          .map((a, i) => {
+            const isCorrect = q.correctIndexes.includes(i);
+            return `
+              <div class="answer ${isCorrect ? 'correct' : ''}" style="cursor: default;">
+                ${a}
+              </div>
+            `;
+          })
+          .join('')}
+      </div>
+      <button class="next-btn" onclick="next()">Следующий вопрос →</button>
+    `;
+    return;
+  }
 
-    ${q.answers
-      .map((a, i) => {
-        const isCorrect = q.correctIndexes.includes(i);
-
-        if (mode === 6) {
-          return `
-            <div class="answer ${isCorrect ? 'correct' : ''}">
-              ${a}
-            </div>
-          `;
-        }
-
-        // Режимы 1, 2, 5: выбор множества ответов
-        if ([1, 2, 5].includes(mode)) {
-          return `
+  // Режимы 1, 2, 5 - множественный выбор
+  if ([1, 2, 5].includes(mode)) {
+    root.innerHTML = `
+      <h2>${q.question}</h2>
+      <div class="answers-container">
+        ${q.answers
+          .map((a, i) => `
             <button class="answer" id="answer-${i}" onclick="toggleAnswer(${i})">
               ${a}
             </button>
-          `;
-        }
+          `)
+          .join('')}
+      </div>
+      <button class="next-btn" onclick="submitAnswer()">Проверить ответ</button>
+    `;
+    return;
+  }
 
-        // Режимы 3, 4: один ответ и сразу проверка
-        return `
+  // Режимы 3, 4 - одиночный выбор
+  root.innerHTML = `
+    <h2>${q.question}</h2>
+    <div class="answers-container">
+      ${q.answers
+        .map((a, i) => `
           <button class="answer" onclick="pick(${i})">
             ${a}
           </button>
-        `;
-      })
-      .join('')}
-
-    ${[1, 2, 5].includes(mode) ? `<button class="next-btn" onclick="submitAnswer()">Ответить</button>` : ''}
-    ${mode === 6 ? `<button class="next-btn" onclick="next()">Следующий вопрос</button>` : ''}
+        `)
+        .join('')}
+    </div>
   `;
 }
 
-// ===== TOGGLE ANSWER (Режим 1) =====
+// ===== TOGGLE ANSWER (для режимов 1, 2, 5) =====
 function toggleAnswer(i) {
   const btn = document.getElementById(`answer-${i}`);
+  if (!btn) return;
+
   if (selected.includes(i)) {
     selected = selected.filter((idx) => idx !== i);
     btn.classList.remove('selected');
@@ -124,10 +161,10 @@ function toggleAnswer(i) {
   }
 }
 
-// ===== SUBMIT ANSWER (Режим 1) =====
+// ===== SUBMIT ANSWER (для режимов 1, 2, 5) =====
 function submitAnswer() {
   if (selected.length === 0) {
-    alert('Выберите хотя бы один ответ');
+    alert('⚠️ Выберите хотя бы один ответ');
     return;
   }
 
@@ -135,9 +172,11 @@ function submitAnswer() {
   const answers = document.querySelectorAll('.answer');
 
   // Проверяем правильность
+  const sortedSelected = [...selected].sort((a, b) => a - b);
+  const sortedCorrect = [...q.correctIndexes].sort((a, b) => a - b);
   const isCorrect =
-    selected.length === q.correctIndexes.length &&
-    selected.every((i) => q.correctIndexes.includes(i));
+    sortedSelected.length === sortedCorrect.length &&
+    sortedSelected.every((val, idx) => val === sortedCorrect[idx]);
 
   if (isCorrect) {
     score++;
@@ -145,58 +184,81 @@ function submitAnswer() {
 
   // Показываем результаты
   answers.forEach((el, idx) => {
+    el.onclick = null;
+    el.disabled = true;
+
     if (q.correctIndexes.includes(idx)) {
       el.classList.add('correct');
+      el.classList.remove('selected', 'wrong');
     } else if (selected.includes(idx)) {
       el.classList.add('wrong');
+      el.classList.remove('selected');
     }
-    el.onclick = null;
   });
 
-  // Отключаем кнопку "Ответить"
+  // Заменяем кнопку "Проверить" на "Далее"
   const submitBtn = document.querySelector('.next-btn');
-  if (submitBtn) submitBtn.style.display = 'none';
-
-  // Добавляем кнопку "Далее"
-  const root = document.getElementById('quiz');
-  const nextBtn = document.createElement('button');
-  nextBtn.className = 'next-btn';
-  nextBtn.textContent = 'Далее';
-  nextBtn.onclick = () => {
-    index++;
-    updateProgress();
-    if (index < questions.length) {
-      render();
-    } else {
-      finish();
-    }
-  };
-  root.appendChild(nextBtn);
+  if (submitBtn) {
+    submitBtn.textContent = 'Следующий вопрос →';
+    submitBtn.onclick = () => {
+      index++;
+      updateProgress();
+      if (index < questions.length) {
+        render();
+      } else {
+        finish();
+      }
+    };
+  }
 }
 
-// ===== ANSWER PICK (Режимы 3-4) =====
+// ===== PICK ANSWER (для режимов 3, 4) =====
 function pick(i) {
-  if (mode === 6 || [1, 2, 5].includes(mode)) return;
+  if (pickLocked) return;
+  pickLocked = true;
 
+  const answers = document.querySelectorAll('.answer');
   const q = questions[index];
 
-  if (q.correctIndexes.includes(i)) {
-    score++;
-  }
-
-  setTimeout(() => {
-    index++;
-    updateProgress();
-
-    if (index < questions.length) {
-      render();
-    } else {
-      finish();
+  // Показываем выбранный ответ
+  answers.forEach((btn, idx) => {
+    btn.disabled = true;
+    if (idx === i) {
+      btn.classList.add('selected');
     }
+  });
+
+  // Проверяем правильность после небольшой задержки
+  setTimeout(() => {
+    answers.forEach((btn, idx) => {
+      if (q.correctIndexes.includes(idx)) {
+        btn.classList.add('correct');
+        btn.classList.remove('selected');
+      } else if (idx === i) {
+        btn.classList.add('wrong');
+        btn.classList.remove('selected');
+      }
+    });
+
+    if (q.correctIndexes.includes(i)) {
+      score++;
+    }
+
+    // Переход к следующему вопросу
+    setTimeout(() => {
+      index++;
+      updateProgress();
+
+      if (index < questions.length) {
+        render();
+      } else {
+        finish();
+      }
+    }, 1500);
   }, 300);
 }
 
-// ===== NEXT (MODE 6) =====
+// ===== NEXT (для режима 6) =====
 function next() {
   index++;
   updateProgress();
@@ -218,7 +280,7 @@ function updateProgress() {
     return;
   }
 
-  const percent = (index / questions.length) * 100;
+  const percent = Math.round((index / questions.length) * 100);
   bar.style.width = `${percent}%`;
 }
 
@@ -228,19 +290,68 @@ function finish() {
 
   const quiz = document.getElementById('quiz');
 
+  // Режим 6 - просто завершение просмотра
   if (mode === 6) {
     quiz.innerHTML = `
-      <h2>Просмотр завершён</h2>
-      <p>Вы просмотрели все вопросы выбранной темы.</p>
-      <button onclick="location.href='a9F3kQxL2mP8sT.html'">К темам</button>
+      <div class="finish-screen">
+        <h2>✅ Просмотр завершён</h2>
+        <p style="color: var(--text-secondary); margin: 20px 0; font-size: 18px;">
+          Вы просмотрели все вопросы выбранной темы.
+        </p>
+        <button class="btn-primary" onclick="location.href='a9F3kQxL2mP8sT.html'">
+          Вернуться к темам
+        </button>
+      </div>
     `;
     return;
   }
 
+  // Вычисляем процент правильных ответов
+  const percentage = Math.round((score / questions.length) * 100);
+  let emoji = '🎉';
+  let message = 'Отличный результат!';
+
+  if (percentage >= 90) {
+    emoji = '🏆';
+    message = 'Превосходно!';
+  } else if (percentage >= 70) {
+    emoji = '🎯';
+    message = 'Хороший результат!';
+  } else if (percentage >= 50) {
+    emoji = '📚';
+    message = 'Неплохо, но есть над чем работать';
+  } else {
+    emoji = '💪';
+    message = 'Продолжайте учиться!';
+  }
+
   quiz.innerHTML = `
-    <h2>Экзамен завершён</h2>
-    <p>Правильных ответов: <b>${score}</b> из <b>${questions.length}</b></p>
-    ${mode !== 1 ? `<p>Время выполнения: <b>${seconds} сек</b></p>` : ''}
-    <button onclick="location.href='a9F3kQxL2mP8sT.html'">К темам</button>
+    <div class="finish-screen">
+      <div style="font-size: 72px; margin-bottom: 16px;">${emoji}</div>
+      <h2>${message}</h2>
+      
+      <div class="stats">
+        <div class="stat-card">
+          <div class="label">Правильных ответов</div>
+          <div class="value">${score} / ${questions.length}</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="label">Процент успеха</div>
+          <div class="value">${percentage}%</div>
+        </div>
+        
+        ${mode !== 1 ? `
+          <div class="stat-card">
+            <div class="label">Время выполнения</div>
+            <div class="value">${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}</div>
+          </div>
+        ` : ''}
+      </div>
+
+      <button class="btn-primary" onclick="location.href='a9F3kQxL2mP8sT.html'" style="margin-top: 32px;">
+        Вернуться к темам
+      </button>
+    </div>
   `;
 }

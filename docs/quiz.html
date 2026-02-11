@@ -1,24 +1,28 @@
 <!doctype html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Экзамен</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="app">
-      <div class="quiz-header">
-        <div id="timer">0 сек</div>
-      </div>
-
-      <div class="progress">
-        <div id="bar"></div>
-      </div>
-
-      <div id="quiz"></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Экзамен</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="quiz-container">
+    <div class="quiz-header">
+      <a href="javascript:history.back()" class="back-btn">
+        ← Назад
+      </a>
+      <div id="timer">0 сек</div>
     </div>
 
-    <script src="guard.js"></script>
-    <script src="quiz.js"></script>
-  </body>
+    <div class="progress">
+      <div id="bar"></div>
+    </div>
+
+    <div id="quiz"></div>
+  </div>
+
+  <script src="guard.js"></script>
+  <script src="quiz.js"></script>
+</body>
 </html>
